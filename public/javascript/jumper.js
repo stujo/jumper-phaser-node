@@ -4,7 +4,7 @@ window.onload = function() {
       preload: preload, create: create , update: update 
     });
 
-    var platforms, player;
+    var platforms, player, cursors;
     
     function preload () {
       game.load.image('sky', 'assets/sky.png');
@@ -63,12 +63,43 @@ window.onload = function() {
       player.animations.add('right', [5, 6, 7, 8], 10, true);
 
 
+      cursors = game.input.keyboard.createCursorKeys();
     }
 
     function update() {
-      console.log('UPDATE')
       //  Collide the player with the platforms
       game.physics.arcade.collide(player, platforms);
+
+      //  Reset the players velocity (movement)
+      player.body.velocity.x = 0;
+
+      if (cursors.left.isDown)
+      {
+          //  Move to the left
+          player.body.velocity.x = -150;
+
+          player.animations.play('left');
+      }
+      else if (cursors.right.isDown)
+      {
+          //  Move to the right
+          player.body.velocity.x = 150;
+
+          player.animations.play('right');
+      }
+      else
+      {
+          //  Stand still
+          player.animations.stop();
+
+          player.frame = 4;
+      }
+
+      //  Allow the player to jump if they are touching the ground.
+      if (cursors.up.isDown && player.body.touching.down)
+      {
+          player.body.velocity.y = -350;
+      }
     }
 };
 
