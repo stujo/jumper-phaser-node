@@ -1,8 +1,10 @@
 window.onload = function() {
-    
+  "use strict";    
     var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', { 
       preload: preload, create: create 
     });
+
+    var platforms, player;
     
     function preload () {
       game.load.image('sky', 'assets/sky.png');
@@ -60,7 +62,7 @@ window.onload = function() {
       player.animations.add('left', [0, 1, 2, 3], 10, true);
       player.animations.add('right', [5, 6, 7, 8], 10, true);
 
-      
+
     }
 };
 
