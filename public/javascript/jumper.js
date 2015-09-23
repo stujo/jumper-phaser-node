@@ -4,17 +4,18 @@ window.onload = function() {
       preload: preload, create: create , update: update 
     });
 
-    var platforms, player, cursors, stars;
-    
+    var platforms, player, cursors, stars, scoreDisplay, timeDisplay;
+
+    var score = 0;
+
     function preload () {
       game.load.image('sky', 'assets/sky.png');
       game.load.image('ground', 'assets/platform.png');
       game.load.image('star', 'assets/star.png');
       game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
     }
-    
-    function create () {
    
+    function create () {
       //  We're going to be using physics, so enable the Arcade Physics system
       game.physics.startSystem(Phaser.Physics.ARCADE);
 
@@ -45,7 +46,8 @@ window.onload = function() {
 
       ledge.body.immovable = true;
 
-
+      scoreDisplay = game.add.text(16, 16, 'score: ' + score, { fontSize: '32px', fill: '#000' });
+      timeDisplay = game.add.text(300, 16, '', { fontSize: '32px', fill: '#000' });
 
       // The player and its settings
       player = game.add.sprite(32, game.world.height - 550, 'dude');
@@ -83,12 +85,26 @@ window.onload = function() {
       }
     }
 
+    function updateScore(){
+      scoreDisplay.text = 'Score: ' + score;
+    }
+
+    function updateTime(){
+      timeDisplay.text = game.time.totalElapsedSeconds().toFixed(1);
+    }
+
     function collectStar(player, star) {
       // Removes the star from the screen
       star.kill();
+
+      //  Add and update the score
+      score += 10;
+      updateScore();
     }
 
     function update() {
+      updateTime();
+
       //  Collide the player with the platforms
       game.physics.arcade.collide(player, platforms);
       game.physics.arcade.collide(stars, platforms);
