@@ -1,0 +1,25 @@
+{
+  "name": "jumper-phaser-node",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stujo/jumper-phaser-node"
+  },
+  "author": "stujo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stujo/jumper-phaser-node/issues"
+  },
+  "homepage": "https://github.com/stujo/jumper-phaser-node",
+  "dependencies": {
+    "ejs": "^2.3.4",
+    "express": "^4.13.3"
+  }
+}
