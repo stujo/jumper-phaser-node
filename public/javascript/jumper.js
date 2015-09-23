@@ -1,7 +1,7 @@
 window.onload = function() {
   "use strict";    
     var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', { 
-      preload: preload, create: create 
+      preload: preload, create: create , update: update 
     });
 
     var platforms, player;
@@ -48,7 +48,7 @@ window.onload = function() {
 
 
       // The player and its settings
-      player = game.add.sprite(32, game.world.height - 150, 'dude');
+      player = game.add.sprite(32, game.world.height - 550, 'dude');
 
       //  We need to enable physics on the player
       game.physics.arcade.enable(player);
@@ -63,6 +63,12 @@ window.onload = function() {
       player.animations.add('right', [5, 6, 7, 8], 10, true);
 
 
+    }
+
+    function update() {
+      console.log('UPDATE')
+      //  Collide the player with the platforms
+      game.physics.arcade.collide(player, platforms);
     }
 };
 
