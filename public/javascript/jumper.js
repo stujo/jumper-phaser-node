@@ -38,20 +38,24 @@ window.onload = function() {
         };
 
         this.create = function() {
-            setTimeout(function(){
-              game.state.start("GameState");
-            }, 2000);
+            game.state.start("GameState");
         };
     }
 
     function GameState(game) {
         "use strict";
-        var score, platforms, player, cursors, stars, scoreDisplay, timeDisplay;
+        var score, start_time, completion_time, platforms, player, cursors, stars, scoreDisplay, timeDisplay;
 
         console.log("%cGameState", "color:white; background:red");
 
+        function elapsedTime() {
+            return game.time.totalElapsedSeconds() - start_time;
+        }
+
         this.create = function() {
+            completion_time = null;
             score = 0;
+            start_time = game.time.totalElapsedSeconds();
 
             //  We're going to be using physics, so enable the Arcade Physics system
             game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -83,14 +87,6 @@ window.onload = function() {
 
             ledge.body.immovable = true;
 
-            scoreDisplay = game.add.text(16, 16, 'score: ' + score, {
-                fontSize: '32px',
-                fill: '#000'
-            });
-            timeDisplay = game.add.text(300, 16, '', {
-                fontSize: '32px',
-                fill: '#000'
-            });
 
             // The player and its settings
             player = game.add.sprite(32, game.world.height - 550, 'dude');
@@ -106,7 +102,6 @@ window.onload = function() {
             //  Our two animations, walking left and right.
             player.animations.add('left', [0, 1, 2, 3], 10, true);
             player.animations.add('right', [5, 6, 7, 8], 10, true);
-
 
             cursors = game.input.keyboard.createCursorKeys();
 
@@ -125,6 +120,16 @@ window.onload = function() {
                 //  This just gives each star a slightly random bounce value
                 star.body.bounce.y = 0.7 + Math.random() * 0.2;
             }
+
+            scoreDisplay = game.add.text(16, 16, 'score: ' + score, {
+                fontSize: '32px',
+                fill: '#000'
+            });
+            timeDisplay = game.add.text(300, 16, '', {
+                fontSize: '32px',
+                fill: '#000'
+            });
+
         }
 
         function updateScore() {
@@ -132,7 +137,20 @@ window.onload = function() {
         }
 
         function updateTime() {
-            timeDisplay.text = game.time.totalElapsedSeconds().toFixed(2);
+            timeDisplay.text = elapsedTime().toFixed(2);
+        }
+
+        function complete() {
+            completion_time = elapsedTime().toFixed(3);
+        }
+
+        function wrapUp() {
+            stopPlayer();
+            player.body.gravity.y = -60;
+            stars.forEach(function(star) {
+                star.body.gravity.y = 600;
+            });
+            game.state.start('CollectedAllState', false, false, completion_time);
         }
 
         function collectStar(player, star) {
@@ -141,46 +159,89 @@ window.onload = function() {
             //  Add and update the score
             score += 10;
             updateScore();
+
+            if (score >= 120) {
+                complete();
+            }
+        }
+
+        function gameRunning() {
+            return !completion_time;
+        }
+
+        function stopPlayer() {
+            //  Stand still
+            //  Reset the players velocity (movement)
+            player.body.velocity.x = 0;
+            player.animations.stop();
+            player.frame = 4;
         }
 
         this.update = function() {
-            updateTime();
 
             //  Collide the player with the platforms
             game.physics.arcade.collide(player, platforms);
-            game.physics.arcade.collide(stars, platforms);
 
-            game.physics.arcade.overlap(player, stars, collectStar, null, this);
+            if (gameRunning()) {
+                updateTime();
 
-            //  Reset the players velocity (movement)
-            player.body.velocity.x = 0;
+                game.physics.arcade.collide(stars, platforms);
+                game.physics.arcade.overlap(player, stars, collectStar, null, this);
 
-            if (cursors.left.isDown) {
-                //  Move to the left
-                player.body.velocity.x = -150;
+                if (cursors.left.isDown) {
+                    //  Move to the left
+                    player.body.velocity.x = -150;
 
-                player.animations.play('left');
-            } else if (cursors.right.isDown) {
-                //  Move to the right
-                player.body.velocity.x = 150;
+                    player.animations.play('left');
+                } else if (cursors.right.isDown) {
+                    //  Move to the right
+                    player.body.velocity.x = 150;
 
-                player.animations.play('right');
+                    player.animations.play('right');
+                } else {
+                    stopPlayer();
+                }
+
+                //  Allow the player to jump if they are touching the ground.
+                if (cursors.up.isDown && player.body.touching.down) {
+                    player.body.velocity.y = -350;
+                }
             } else {
-                //  Stand still
-                player.animations.stop();
-
-                player.frame = 4;
-            }
-
-            //  Allow the player to jump if they are touching the ground.
-            if (cursors.up.isDown && player.body.touching.down) {
-                player.body.velocity.y = -350;
+                wrapUp();
             }
         }
     }
 
 
-    function GameOverState(game) {
+    function CollectedAllState(game) {
+
+        var spacebar, label, game_time;
+
+        console.log("%cCollectedAllState", "color:white; background:red");
+
+        this.init = function(timed) {
+            game_time = timed;
+        }
+
+        this.create = function() {
+            spacebar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+            label = game.add.text(
+                game.world.centerX,
+                game.world.centerY,
+                'Your Time: ' + game_time + '\nPress SPACE to restart', {
+                    font: '22px Lucida Console',
+                    fill: '#fff',
+                    align: 'center'
+                });
+            label.anchor.setTo(0.5, 0.5);
+        };
+
+        this.update = function() {
+            score = 0;
+            if (spacebar.isDown) {
+                game.state.start('GameState');
+            }
+        };
 
     }
 
@@ -190,7 +251,7 @@ window.onload = function() {
     game.state.add("BootState", BootState);
     game.state.add("PreloadState", PreloadState);
     game.state.add("GameState", GameState);
-    //      game.state.boot("GameOver", GameOverState);
+    game.state.add("CollectedAllState", CollectedAllState);
 
     game.state.start("BootState");
 };
